@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      reflectable:
+        generate_for:
+          - src/reflections.dart
+          - src/observables.dart
+          - example/reflections.dart
+        options:
+          formatted: true
