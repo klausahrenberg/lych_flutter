@@ -105,7 +105,7 @@ class LRepository<T extends Object> {
     }
   }
 
-  Future remove(T record, final void Function() _callback) async {
+  Future remove(T record) async {
     var recordJson = LJson().beginObject().propertyString("data", T.toString()).propertyObject("map", record, true).endObject().toString();
     LLog.test(LRepository, "remove: $recordJson");
     try {

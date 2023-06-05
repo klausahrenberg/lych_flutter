@@ -103,7 +103,7 @@ abstract class LReflections {
   }
 
   static bool isObservable(Type type) {
-    return isSubtype(type, LObservable);
+    return (type is LObservable) || (type.toString().startsWith("LObservable<")) || (isSubtype(type, LObservable));
   }
 
   static bool isSubtype(Type subType, Type parentType) {
@@ -274,7 +274,7 @@ abstract class LReflections {
         }
       }
     } else {
-      LLog.test(LReflections, "value is null");
+      LLog.test(LReflections, "value for field '$fieldName' is null and can not be created");
     }
     return value;
   }

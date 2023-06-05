@@ -58,33 +58,37 @@ class LObservable<T> {
 
   @override
   String toString() {
-    return  "$runtimeType{$value}";
+    return "$runtimeType{$value}";
   }
 }
 
 @Reflect
 class LString extends LObservable<String> {
-  LString([String? initialValue]):super(initialValue);
+  LString([String? initialValue]) : super(initialValue);
+
+  static LString empty() {
+    return LString(null);
+  }
 }
 
 @Reflect
 class LBoolean extends LObservable<bool> {
-  LBoolean([bool? initialValue]):super(initialValue);
+  LBoolean([bool? initialValue]) : super(initialValue);
 }
 
 @Reflect
 class LInteger extends LObservable<int> {
-  LInteger([int? initialValue]):super(initialValue);
+  LInteger([int? initialValue]) : super(initialValue);
 }
 
 @Reflect
 class LDouble extends LObservable<double> {
-  LDouble([double? initialValue]):super(initialValue);
+  LDouble([double? initialValue]) : super(initialValue);
 }
 
 @Reflect
 class LDatetime extends LObservable<DateTime> {
-  LDatetime([DateTime? initialValue]):super(initialValue);
+  LDatetime([DateTime? initialValue]) : super(initialValue);
 }
 
 /*@Reflect
