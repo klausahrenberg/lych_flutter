@@ -57,19 +57,13 @@ class LRepository<T extends Object> {
               .endObject()
               .toString());
 
-      //request.then((response) {
       if (response.statusCode == 200) {
         LLog.test(this, response.statusCode.toString());
         var b = utf8.decode(response.bodyBytes);
-        LLog.test(this, "utf8 decoded");
         var r = json.decode(b);
-        LLog.test(this, "json?");
-        LLog.test(this, "json $r decoded");
         List<T> datas = LReflections.newList(T, r).cast<T>();
         state = LDataState.AVAILABLE;
-        //state.value = LJson.parsePayload(TScanState, "\"" + s + "\"");
         LLog.test(this, "json: '$state' anzahl ${datas.length}");
-        //devices = LReflections.newList(TDevice, r['devices'])?.cast<TDevice>();
         return datas;
       } else {
         // If the server did not return a 200 OK response

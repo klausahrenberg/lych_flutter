@@ -1,20 +1,21 @@
 import 'dart:convert';
-
 import 'package:reflectable/reflectable.dart';
-
 import '../lych.dart';
 
 abstract class LReflections {
+  static const String DEFAULT_ID_STR_NOT_SAVED_YET = "defaultIdNotSavedYet";
+  static const int DEFAULT_ID_INT_NOT_SAVED_YET = -1;
+
   static Map<String, dynamic> toMap(Object o) {
     var map = <String, dynamic>{};
-    var fields = getFieldsOfInstance(o, LObservable, {Json, Id, Lazy});
+    var fields = getFieldsOfInstance(o, Object, {Json, Id, Lazy});
     for (var field in fields) {
       map[field.simpleName.toString()] = mirror(o).invokeGetter(field.simpleName);
     }
     return map;
   }
 
-  static LObservable? createObservableForValue(dynamic value, [Type? observableType]) {
+  /*static LObservable? createObservableForValue(dynamic value, [Type? observableType]) {
     if (observableType == LString) {
       return LString(value);
     } else if (observableType == LBoolean) {
@@ -28,7 +29,7 @@ abstract class LReflections {
     } else {
       return LObservable(value);
     }
-  }
+  }*/
 
   static String asString(dynamic o) {
     return "${o.runtimeType}${LJson.of(o).toString()}";
@@ -39,15 +40,20 @@ abstract class LReflections {
     //return MirrorSystem.getName(symbol);
   }
 
-  static LObservable observable(Object o, String name, [InstanceMirror? im]) {
+  static Object? value(Object o, String name, [InstanceMirror? im]) {
     im ??= mirror(o);
-    return im.invokeGetter(name) as LObservable;
+    return im.invokeGetter(name);
   }
+
+  /*static LObservable observable(Object o, String name, [InstanceMirror? im]) {
+    return value(o, name, im) as LObservable;
+  }*/
 
   static void setValue(Object o, String name, Object value, [InstanceMirror? im]) {
     im ??= mirror(o);
     try {
-      var field = im.invokeGetter(name);
+      im.invokeSetter(name, value);
+      /*var field = im.invokeGetter(name);
       LObservable? obs;
       if (field == null) {
         obs = createObservableForValue(value);
@@ -59,7 +65,7 @@ abstract class LReflections {
       }
       if (obs != null) {
         obs.value = value;
-      }
+      }*/
     } catch (ex) {
       LLog.error(LReflections, ex as Error);
     }
@@ -71,11 +77,11 @@ abstract class LReflections {
     return _getFields(mirror(o).type, requiredType, annotations);
   }
 
-  static Set<VariableMirror> getFields(Type o, Type? requiredType, Iterable<LAnnotation> annotations) {
+  static Set<VariableMirror> getFields(Type o, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
     return _getFields(mirrorClass(o), requiredType, annotations);
   }
 
-  static Set<VariableMirror> _getFields(ClassMirror cm, Type? requiredType, Iterable<LAnnotation> annotations) {
+  static Set<VariableMirror> _getFields(ClassMirror cm, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
     var result = <VariableMirror>{};
     TypeMirror? requiredTypeMirror = (requiredType != null ? mirrorType(requiredType) : null);
     for (final d in cm.declarations.values) {
@@ -102,9 +108,9 @@ abstract class LReflections {
     return existsAnnotation(field, {Id});
   }
 
-  static bool isObservable(Type type) {
+  /*static bool isObservable(Type type) {
     return (type is LObservable) || (type.toString().startsWith("LObservable<")) || (isSubtype(type, LObservable));
-  }
+  }*/
 
   static bool isSubtype(Type subType, Type parentType) {
     try {
@@ -233,14 +239,14 @@ abstract class LReflections {
   }
 
   static dynamic _getValue(Type requiredType, dynamic value, ClassMirror cm, String fieldName) {
-    LLog.test(LReflections, "getValue...");
     var pType = requiredType.toString();
-    LLog.test(LReflections, "getValue....");
-    if (LReflections.isObservable(requiredType)) {
+    LLog.test(LReflections, "getValue... $value");
+    /*if (LReflections.isObservable(requiredType)) {
       LLog.test(LReflections, "observab");
       value = createObservableForValue(value, requiredType);
       LLog.test(LReflections, "Observable for field $fieldName created: $value");
-    } else if (value != null) {
+    } else*/
+    if (value != null) {
       if (pType.startsWith("List<")) {
         LLog.test(LReflections, "list");
         pType = pType.substring(5, pType.length - 1);
@@ -263,18 +269,21 @@ abstract class LReflections {
         //nothing
         LLog.test(LReflections, "prim type");
       } else {
-        LLog.test(LReflections, "not primitive, no list no map.. ${requiredType.toString()} ");
+        LLog.test(LReflections, "not primitive, no list no map.. ${requiredType.toString()} .. $pType");
         var cmRequiredType = mirrorClass(requiredType);
         LLog.test(LReflections, "not primitive, no list no map.... ");
         if (isEnum(requiredType, cmRequiredType)) {
           LLog.test(LReflections, "enum.. ");
           value = stringToEnum(value, getEnums(requiredType, cmRequiredType));
-        } else if (isObservable(requiredType)) {
-          value = LReflections.createObservableForValue(value);
+        } else if (value is Map<String, dynamic>) {
+          value = newInstance(requiredType, value);
         }
+        /*else if (isObservable(requiredType)) {
+          value = LReflections.createObservableForValue(value);
+        }*/
       }
     } else {
-      LLog.test(LReflections, "value for field '$fieldName' is null and can not be created");
+      LLog.test(LReflections, "value for field '$fieldName' is null and can not be created ${_isPrimitiveType(requiredType)} / $requiredType ");
     }
     return value;
   }
@@ -284,6 +293,8 @@ abstract class LReflections {
     for (var m in cm.declarations.values) {
       if (m is VariableMirror) {}
     }
+    var fields = LReflections._getFields(cm);
+
     //1.instanciate via parameters in constructor
     for (var m in cm.declarations.values) {
       if (m is MethodMirror && m.isConstructor) {
@@ -295,7 +306,18 @@ abstract class LReflections {
           cNames.add(cName);
           var value = _getValue(p.reflectedType, (map != null ? map[cName] : null), cm, cName);
           if (value == null) {
-            throw Exception("Value '$cName' to create instance of type $toBeInstanciated is missing");
+            var field = fields.firstWhere((f) => f.simpleName == cName);
+            //LLog.test(LReflections, "field $field / ${LReflections.isId(field)} / ${(p.reflectedType == String)} / ${(field.reflectedType == String)}");
+            if (LReflections.isId(field)) {
+              if (p.reflectedType == String) {
+                value = DEFAULT_ID_STR_NOT_SAVED_YET;
+              } else if (p.reflectedType == int) {
+                value = DEFAULT_ID_INT_NOT_SAVED_YET;
+              }
+            }
+            if (value == null) {
+              throw Exception("Value '$cName' to create instance of type $toBeInstanciated is missing");
+            }
           }
           cList.add(value);
         }

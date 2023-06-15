@@ -1,5 +1,6 @@
 import 'package:lych/lych.dart';
 
+/*
 @Reflect
 class LObservable<T> {
   T? _value;
@@ -90,7 +91,7 @@ class LDouble extends LObservable<double> {
 class LDatetime extends LObservable<DateTime> {
   LDatetime([DateTime? initialValue]) : super(initialValue);
 }
-
+*/
 /*@Reflect
 class LDate extends LObservable<Date> {
   LDatetime([Date? initialValue]):super(initialValue);

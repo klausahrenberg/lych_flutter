@@ -5,14 +5,14 @@ import 'reflections.reflectable.dart';
 void main() {
   initializeReflectable();
 
-  var fields = LReflections.getFields(TDevice, null, {Json, Id, Lazy});
+  var fields = LReflections.getFields(TDevice);
   print("fields $fields");
   for (var f in fields) {
     print("field ${f.simpleName}");
   }
 
-  var c = Thing(LString("hoho"));
-  var fields2 = LReflections.getFieldsOfInstance(c, LObservable, {Json, Id, Lazy});
+  var c = Thing("hoho");
+  var fields2 = LReflections.getFieldsOfInstance(c, Object, {Json, Id, Lazy});
   print('reflections.getFields: $fields2');
 
   print('contact before setting: $c');
@@ -47,8 +47,8 @@ void main() {
       .toString();
   print("parse '$s'");
 
-  var p = TProperty(LString("href"), LString("url"), TPropertyType.boolean, ["1"]);
-  p.attype = LString("OnOff");
+  var p = TProperty("href", "url", TPropertyType.boolean, ["1"]);
+  p.attype = "OnOff";
   print("p: ${LJson.of(p).toString()}");
 
   TDevice st3 = LJson.parsePayload(TDevice, s);

@@ -333,15 +333,24 @@ class LJson {
     var fields = LReflections.getFieldsOfInstance(o, null, {Json, Id, Lazy});
     json.beginObject();
     for (var field in fields) {
-      var value = LReflections.observable(o, field.simpleName).value;
+      var value = LReflections.value(o, field.simpleName);
       var fieldName = field.simpleName;
-      if ((!onlyId) || (LReflections.isId(field))) {
+      var isId = LReflections.isId(field);
+      if ((!onlyId) || (isId)) {
         if (value == null) {
           json.propertyNull(fieldName);
         } else if (value is String) {
-          json.propertyString(fieldName, value);
+          if ((isId) && (value == LReflections.DEFAULT_ID_STR_NOT_SAVED_YET)) {
+            json.propertyNull(fieldName);
+          } else {
+            json.propertyString(fieldName, value);
+          }
         } else if (value is int) {
-          json.propertyInteger(fieldName, value);
+          if ((isId) && (value == LReflections.DEFAULT_ID_INT_NOT_SAVED_YET)) {
+            json.propertyNull(fieldName);
+          } else {
+            json.propertyInteger(fieldName, value);
+          }
         } else if (value is double) {
           json.propertyDouble(fieldName, value);
         } else if (value is bool) {

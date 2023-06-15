@@ -3,9 +3,9 @@ import 'package:lych/lych.dart';
 @Reflect
 class Thing {
   @Json
-  LString id;
+  String id;
   @Json
-  LString? title;
+  String? title;
 
   Thing(this.id, [this.title]);
 
@@ -18,42 +18,40 @@ class TDevice {
   @Json
   String url;
   @Json
-  LString href;
+  String href;
   @Json
-  LString? id;
+  String? id;
   @Json
-  LString? title;
+  String? title;
   @Json
   List<String> attype;
   @Json
-  Map<String,TProperty> properties;
+  Map<String, TProperty> properties;
 
   TDevice(this.url, this.href, this.attype, this.properties);
 
-  static Map<String,TProperty> propertiesMap() {
-    return <String,TProperty>{};
+  static Map<String, TProperty> propertiesMap() {
+    return <String, TProperty>{};
   }
 }
 
 @Reflect
 class TProperty {
   @Json
-  LString href;
+  String href;
   @Json
-  LString title;
+  String title;
   @Json
   TPropertyType type;
   @Json
-  LString? attype;
+  String? attype;
   @Json
   List<String> enums;
   @Json
-  LObservable? value;
+  Object? value;
 
   TProperty(this.href, this.title, this.type, this.enums);
 }
 
 @Reflect
-enum TPropertyType {
-  string, integer, number, boolean
-}
+enum TPropertyType { string, integer, number, boolean }

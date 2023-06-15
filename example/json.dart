@@ -1,7 +1,8 @@
 import 'package:lych/lych.dart';
 
 void main() {
-  Contact? c = LJson.parsePayload(Contact, LJson.empty().beginObject().propertyString("id", "hJson").propertyString("name", "Thats's not my name").endObject().toString()) as Contact?;
+  Contact? c = LJson.parsePayload(
+      Contact, LJson.empty().beginObject().propertyString("id", "hJson").propertyString("name", "Thats's not my name").endObject().toString()) as Contact?;
   print("contact created by mirrors: $c");
 
   var jString = '''
@@ -29,14 +30,13 @@ void main() {
   print("json $jString");
   LQuery? b = LJson.parsePayload(LQuery, jString) as LQuery?;
   print("query created by mirrors: $b");
-
 }
 
 class Contact {
   @Json
-  LString id;
+  String id;
   @Json
-  LString? name;
+  String? name;
 
   Contact(this.id, [this.name]) {
     print("hello $id");
