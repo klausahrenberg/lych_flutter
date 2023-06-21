@@ -15,7 +15,7 @@ abstract class LRecordState<T extends Object> extends State<LRecordWidget<T>> {
 abstract class LListWidget<T extends Object> extends StatefulWidget {
   final LRepository<T> repo;
 
-  LListWidget() : repo = LRepository();
+  LListWidget([String url = "http://localhost:8080/api/"]) : repo = LRepository(url);
 }
 
 abstract class LListState<T extends Object> extends State<LListWidget<T>> {
