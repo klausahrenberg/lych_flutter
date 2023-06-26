@@ -34,6 +34,41 @@ abstract class LListState<T extends Object> extends State<LListWidget<T>> {
   }
 }
 
+const TextStyle _defaultHighlightStyle = TextStyle(fontWeight: FontWeight.bold, backgroundColor: Colors.yellowAccent);
+
+class FTextSpan extends StatelessWidget {
+  final String _text;
+  final String _highlight;
+  final TextStyle _highlightStyle;
+
+  FTextSpan(this._text, this._highlight, [this._highlightStyle = _defaultHighlightStyle]) : super();
+
+  List<InlineSpan> _getFormattedText() {
+    List<InlineSpan> result = [];
+    String s = _text;
+    if (_highlight.length > 0) {
+      int index = s.toLowerCase().indexOf(_highlight.toLowerCase());
+      while (index > -1) {
+        if (index > 0) {
+          result.add(TextSpan(text: s.substring(0, index - 1)));
+        }
+        result.add(TextSpan(text: s.substring(index, index + _highlight.length), style: _highlightStyle));
+        s = s.substring(index + _highlight.length);
+        index = s.toLowerCase().indexOf(_highlight.toLowerCase());
+      }
+    }
+    if (s.length > 0) {
+      result.add(TextSpan(text: s));
+    }
+    return result;
+  }
+
+  @override
+  Widget build(Object context) {
+    return Text.rich(TextSpan(children: _getFormattedText()));
+  }
+}
+
 final regExpPattern = r'\[([^\]]+)\]\(([^\s\)]+)\)';
 final regExp = RegExp(regExpPattern);
 
