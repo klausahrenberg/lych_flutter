@@ -3,8 +3,8 @@ import 'package:lych/lych.dart';
 
 abstract class LRecordWidget<T extends Object> extends StatefulWidget {
   final LRepository<T> repo;
-  final T record;
-  LRecordWidget(this.record) : repo = new LRepository();
+  T record;
+  LRecordWidget(this.record, [String url = "http://localhost:8080/api/"]) : repo = new LRepository(url);
 }
 
 abstract class LRecordState<T extends Object> extends State<LRecordWidget<T>> {
