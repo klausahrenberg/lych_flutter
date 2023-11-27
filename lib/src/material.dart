@@ -19,7 +19,7 @@ abstract class LListWidget<T extends Object> extends StatefulWidget {
 }
 
 abstract class LListState<T extends Object> extends State<LListWidget<T>> {
-  bool changed = false;
+  //bool changed = false;
 
   LListState();
 
@@ -32,6 +32,22 @@ abstract class LListState<T extends Object> extends State<LListWidget<T>> {
   void dispose() {
     super.dispose();
   }
+}
+
+abstract class LDefaultPane<T extends Object> extends StatefulWidget {
+  final LRepository<T> repo;
+
+  LDefaultPane([String url = "http://localhost:8080/api/"]) : repo = LRepository(url);
+}
+
+abstract class LDefaultPaneState<T extends Object> extends State<LDefaultPane<T>> {
+  @override
+  void initState() {
+    super.initState();
+    _updateState();
+  }
+
+  void _updateState() {}
 }
 
 const TextStyle _defaultHighlightStyle = TextStyle(fontWeight: FontWeight.bold, backgroundColor: Colors.yellowAccent);
