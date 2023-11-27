@@ -5,13 +5,14 @@ import 'package:http/http.dart' as http;
 
 @Reflect
 class LRepository<T extends Object> {
-  LRepository([this.webServer = "http://localhost:8080/api/"]);
+  LRepository([this.webServer = "http://localhost:8080/api/", this.odwBasePackage = "com.ka.kms.odw"]);
   @Json
   LDataState state = LDataState.UNKNOWN;
   @Json
   //List<T>? datas;
 
   String webServer;
+  String odwBasePackage;
   String fetchCommand = "fetch";
   String stateCommand = "state";
   String persistCommand = "persist";
@@ -30,35 +31,24 @@ class LRepository<T extends Object> {
     LLog.test(this, "fetching...");
     state = LDataState.REQUESTING;
     try {
-      LLog.test(
-          LRepository,
-          LJson()
-              .beginObject()
-              .propertyString("data", T.toString())
-              .beginObject("query")
-              .propertyInteger("offset", offset)
-              .propertyInteger("limit", limit)
-              .propertyString("filter", filter ?? null)
-              .endObject()
-              .endObject()
-              .toString());
+      String request = LJson()
+          .beginObject()
+          .propertyString("recordClass", odwBasePackage + "." + T.toString())
+          .propertyInteger("offset", offset)
+          .propertyInteger("limit", limit)
+          .propertyString("filter", filter ?? null)
+          .endObject()
+          .toString();
+      LLog.test(LRepository, request);
+      LLog.test(this, "heho");
       final response = await http.post(Uri.parse(webServer + fetchCommand),
           headers: <String, String>{
             "Content-Type": "application/json",
           },
-          body: LJson()
-              .beginObject()
-              .propertyString("data", T.toString())
-              .beginObject("query")
-              .propertyInteger("offset", offset)
-              .propertyInteger("limit", limit)
-              .propertyString("filter", filter ?? null)
-              .endObject()
-              .endObject()
-              .toString());
+          body: request);
 
+      LLog.test(this, response.statusCode.toString());
       if (response.statusCode == 200) {
-        LLog.test(this, response.statusCode.toString());
         var b = utf8.decode(response.bodyBytes);
         var r = json.decode(b);
         List<T> datas = LReflections.newList(T, r).cast<T>();
