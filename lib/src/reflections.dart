@@ -10,7 +10,8 @@ abstract class LReflections {
     var map = <String, dynamic>{};
     var fields = getFieldsOfInstance(o, Object, {Json, Id, Lazy});
     for (var field in fields) {
-      map[field.simpleName.toString()] = mirror(o).invokeGetter(field.simpleName);
+      map[field.simpleName.toString()] =
+          mirror(o).invokeGetter(field.simpleName);
     }
     return map;
   }
@@ -49,7 +50,8 @@ abstract class LReflections {
     return value(o, name, im) as LObservable;
   }*/
 
-  static void setValue(Object o, String name, Object value, [InstanceMirror? im]) {
+  static void setValue(Object o, String name, Object value,
+      [InstanceMirror? im]) {
     im ??= mirror(o);
     try {
       im.invokeSetter(name, value);
@@ -71,23 +73,30 @@ abstract class LReflections {
     }
   }
 
-  static Set<VariableMirror> getFieldsOfInstance(Object o, Type? requiredType, Iterable<LAnnotation> annotations) {
+  static Set<VariableMirror> getFieldsOfInstance(
+      Object o, Type? requiredType, Iterable<LAnnotation> annotations) {
     var im = mirror(o);
     LLog.test(LReflections, "type is ${im.type}");
     return _getFields(mirror(o).type, requiredType, annotations);
   }
 
-  static Set<VariableMirror> getFields(Type o, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
+  static Set<VariableMirror> getFields(Type o,
+      [Type? requiredType,
+      Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
     return _getFields(mirrorClass(o), requiredType, annotations);
   }
 
-  static Set<VariableMirror> _getFields(ClassMirror cm, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
+  static Set<VariableMirror> _getFields(ClassMirror cm,
+      [Type? requiredType,
+      Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
     var result = <VariableMirror>{};
-    TypeMirror? requiredTypeMirror = (requiredType != null ? mirrorType(requiredType) : null);
+    TypeMirror? requiredTypeMirror =
+        (requiredType != null ? mirrorType(requiredType) : null);
     for (final d in cm.declarations.values) {
       if ((d is VariableMirror) && (existsAnnotation(d, annotations))) {
         VariableMirror dvm = d;
-        if ((requiredTypeMirror == null) || (dvm.type.isSubtypeOf(requiredTypeMirror))) {
+        if ((requiredTypeMirror == null) ||
+            (dvm.type.isSubtypeOf(requiredTypeMirror))) {
           result.add(dvm);
         }
       }
@@ -95,7 +104,8 @@ abstract class LReflections {
     return result;
   }
 
-  static bool existsAnnotation(DeclarationMirror declarationMirror, Iterable<LAnnotation> annotations) {
+  static bool existsAnnotation(
+      DeclarationMirror declarationMirror, Iterable<LAnnotation> annotations) {
     for (final a in annotations) {
       if (declarationMirror.metadata.contains(a)) {
         return true;
@@ -235,10 +245,14 @@ abstract class LReflections {
   }
 
   static bool _isPrimitiveType(Type requiredType) {
-    return ((requiredType == String) || (requiredType == int) || (requiredType == double) || (requiredType == bool));
+    return ((requiredType == String) ||
+        (requiredType == int) ||
+        (requiredType == double) ||
+        (requiredType == bool));
   }
 
-  static dynamic _getValue(Type requiredType, dynamic value, ClassMirror cm, String fieldName) {
+  static dynamic _getValue(
+      Type requiredType, dynamic value, ClassMirror cm, String fieldName) {
     var pType = requiredType.toString();
     LLog.test(LReflections, "getValue... $value");
     /*if (LReflections.isObservable(requiredType)) {
@@ -269,7 +283,8 @@ abstract class LReflections {
         //nothing
         LLog.test(LReflections, "prim type");
       } else {
-        LLog.test(LReflections, "not primitive, no list no map.. ${requiredType.toString()} .. $pType");
+        LLog.test(LReflections,
+            "not primitive, no list no map.. ${requiredType.toString()} .. $pType");
         var cmRequiredType = mirrorClass(requiredType);
         LLog.test(LReflections, "not primitive, no list no map.... ");
         if (isEnum(requiredType, cmRequiredType)) {
@@ -283,12 +298,14 @@ abstract class LReflections {
         }*/
       }
     } else {
-      LLog.test(LReflections, "value for field '$fieldName' is null and can not be created ${_isPrimitiveType(requiredType)} / $requiredType ");
+      LLog.test(LReflections,
+          "value for field '$fieldName' is null and can not be created ${_isPrimitiveType(requiredType)} / $requiredType ");
     }
     return value;
   }
 
-  static Object? newInstance<T>(Type toBeInstanciated, [Map<String, dynamic>? map]) {
+  static Object? newInstance<T>(Type toBeInstanciated,
+      [Map<String, dynamic>? map]) {
     var cm = mirrorClass(toBeInstanciated);
     for (var m in cm.declarations.values) {
       if (m is VariableMirror) {}
@@ -304,7 +321,8 @@ abstract class LReflections {
           var cName = LReflections.getName(p);
           LLog.test(LReflections, "cName $cName / ${p.reflectedType} ");
           cNames.add(cName);
-          var value = _getValue(p.reflectedType, (map != null ? map[cName] : null), cm, cName);
+          var value = _getValue(
+              p.reflectedType, (map != null ? map[cName] : null), cm, cName);
           if (value == null) {
             var field = fields.firstWhere((f) => f.simpleName == cName);
             //LLog.test(LReflections, "field $field / ${LReflections.isId(field)} / ${(p.reflectedType == String)} / ${(field.reflectedType == String)}");
@@ -316,7 +334,8 @@ abstract class LReflections {
               }
             }
             if (value == null) {
-              throw Exception("Value '$cName' to create instance of type $toBeInstanciated is missing");
+              throw Exception(
+                  "Value '$cName' to create instance of type $toBeInstanciated is missing");
             }
           }
           cList.add(value);
@@ -349,7 +368,8 @@ abstract class LReflections {
       LLog.test(LReflections, "key $key; value $value");
       var dm = cm.declarations[key];
       if (dm is VariableMirror) {
-        LLog.test(LReflections, "key $key; value $value... / $dm / ${dm.reflectedType}");
+        LLog.test(LReflections,
+            "key $key; value $value... / $dm / ${dm.reflectedType}");
         var v = _getValue(dm.reflectedType, value, cm, key);
         LLog.test(LReflections, "key $key; value $value after getValie");
         im.invokeSetter(key, v);
@@ -360,7 +380,8 @@ abstract class LReflections {
     return insta;
   }
 
-  static List newList(Type itemType, List<dynamic> list, [ClassMirror? cm, String? memberName]) {
+  static List newList(Type itemType, List<dynamic> list,
+      [ClassMirror? cm, String? memberName]) {
     List instances;
     if (itemType == String) {
       instances = List<String>.empty(growable: true);
@@ -375,7 +396,8 @@ abstract class LReflections {
         instances = cm.invoke(memberName + "List", []) as List;
       } catch (ex) {
         instances = [];
-        LLog.debug(LReflections, "Can't invoke map getter '${memberName}List()'. Please declare such a static method in class '${cm.simpleName}'");
+        LLog.debug(LReflections,
+            "Can't invoke map getter '${memberName}List()'. Please declare such a static method in class '${cm.simpleName}'");
       }
     } else {
       instances = List.empty(growable: true);
@@ -390,7 +412,8 @@ abstract class LReflections {
     return instances;
   }
 
-  static Map? newMap(Type itemType, Map<String, dynamic> map, ClassMirror cm, String memberName) {
+  static Map? newMap(Type itemType, Map<String, dynamic> map, ClassMirror cm,
+      String memberName) {
     Map? instances;
     if (itemType == String) {
       instances = Map<String, String>();
@@ -404,7 +427,8 @@ abstract class LReflections {
       try {
         instances = cm.invoke(memberName + "Map", []) as Map;
       } catch (ex) {
-        LLog.debug(LReflections, "Can't invoke map getter '${memberName}Map()'. Please declare such a static method in class '${cm.simpleName}'");
+        LLog.debug(LReflections,
+            "Can't invoke map getter '${memberName}Map()'. Please declare such a static method in class '${cm.simpleName}'");
       }
     }
     if (instances != null) {
@@ -444,7 +468,13 @@ const LIdAnnotation Id = LIdAnnotation();
 
 class LReflectAnnotation extends Reflectable {
   const LReflectAnnotation()
-      : super(instanceInvokeCapability, staticInvokeCapability, metadataCapability, reflectedTypeCapability, newInstanceCapability, typeRelationsCapability,
+      : super(
+            instanceInvokeCapability,
+            staticInvokeCapability,
+            metadataCapability,
+            reflectedTypeCapability,
+            newInstanceCapability,
+            typeRelationsCapability,
             declarationsCapability);
 }
 
