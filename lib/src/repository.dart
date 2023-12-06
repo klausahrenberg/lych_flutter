@@ -3,18 +3,19 @@ import 'dart:convert';
 import 'package:lych/lych.dart';
 import 'package:http/http.dart' as http;
 
+final String odwBasePackage = "com.ka.kms.odw";
+
 @Reflect
 class LRepository<T extends Object> {
-  LRepository(
-      [this.webServer = "http://localhost:8080/api/",
-      this.odwBasePackage = "com.ka.kms.odw"]);
+  LRepository([this.webServer = "http://localhost:8080/api/"]);
   @Json
   LDataState state = LDataState.UNKNOWN;
   @Json
   //List<T>? datas;
 
+  static Map<String, String> contentTypeJson = <String, String>{"Content-Type": "application/json"};
+
   String webServer;
-  String odwBasePackage;
   String fetchCommand = "fetch";
   String fetchRootCommand = "root";
   String stateCommand = "state";
@@ -24,17 +25,13 @@ class LRepository<T extends Object> {
   Future<LDataState> checkState() async {
     state = LDataState.REQUESTING;
     try {
-      final response = await http
-          .post(Uri.parse(webServer + stateCommand), headers: <String, String>{
-        "Content-Type": "application/json",
-      });
+      final response = await http.post(Uri.parse(webServer + stateCommand), headers: contentTypeJson);
       if (response.statusCode == 200) {
         var b = utf8.decode(response.bodyBytes);
         var r = json.decode(b);
         LLog.test(this, "state is ${r['state'].toLowerCase()}");
         var sas = r["state"];
-        state =
-            LReflections.stringToEnum(sas, LReflections.getEnums(LDataState));
+        state = LReflections.stringToEnum(sas, LReflections.getEnums(LDataState));
         /*state = LDataState.values.firstWhere((e) {
           LLog.test(this, "test for $e >? ${LDataState.type.toString()}");
           return e.toString().toLowerCase() == LDataState.toString() + sas;
@@ -62,57 +59,40 @@ class LRepository<T extends Object> {
           .endObject()
           .toString();
       LLog.test(LRepository, request);
-      final response = await http.post(Uri.parse(webServer + fetchCommand),
-          headers: <String, String>{
-            "Content-Type": "application/json",
-          },
-          body: request);
+      final response = await http.post(Uri.parse(webServer + fetchRootCommand), headers: contentTypeJson, body: request);
 
       LLog.test(this, response.statusCode.toString());
       if (response.statusCode == 200) {
         var b = utf8.decode(response.bodyBytes);
         var r = json.decode(b);
-        List<T> datas = LReflections.newList(T, r).cast<T>();
-        //Map<String, dynamic> map = LReflections.newMap(T, r).cast<T>();
-        //LLog.test(this, "json: '$r'");
-        //Object? data = LReflections.newInstance(recordClass, r);
-        //List<T> datas = LReflections.newList(T, r).cast<T>();
+        T data = LReflections.newInstance(recordClass, r) as T;
         state = LDataState.AVAILABLE;
-        LLog.test(this, "json: '$state' anzahl ${datas[0]}");
-
-        return datas[0];
+        return data;
       } else {
         // If the server did not return a 200 OK response
         state = LDataState.OFFLINE;
-        throw Exception(
-            "Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception("Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
-      throw Exception(
-          "Failed to fetch root for other reasons: '${e.toString()}'");
+      throw Exception("Failed to fetch root for other reasons: '${e.toString()}'");
     }
   }
 
-  Future<List<T>> fetch(
-      [int offset = 0, int limit = 50, String? filter]) async {
+  Future<List<T>> fetch(LQuery query) async {
     LLog.test(this, "fetching...");
     state = LDataState.REQUESTING;
     try {
-      String request = LJson()
-          .beginObject()
+      String request = LJson.of(query).toString();
+      /*.beginObject()
           .propertyString("recordClass", odwBasePackage + "." + T.toString())
           .propertyInteger("offset", offset)
           .propertyInteger("limit", limit)
           .propertyString("filter", filter ?? null)
           .endObject()
-          .toString();
+          .toString();*/
       LLog.test(LRepository, request);
-      final response = await http.post(Uri.parse(webServer + fetchCommand),
-          headers: <String, String>{
-            "Content-Type": "application/json",
-          },
-          body: request);
+      final response = await http.post(Uri.parse(webServer + fetchCommand), headers: contentTypeJson, body: request);
 
       LLog.test(this, response.statusCode.toString());
       if (response.statusCode == 200) {
@@ -125,8 +105,7 @@ class LRepository<T extends Object> {
       } else {
         // If the server did not return a 200 OK response
         state = LDataState.OFFLINE;
-        throw Exception(
-            "Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception("Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
@@ -135,27 +114,17 @@ class LRepository<T extends Object> {
   }
 
   Future persist(T record) async {
-    var recordJson = LJson()
-        .beginObject()
-        .propertyString("data", T.toString())
-        .propertyObject("map", record)
-        .endObject()
-        .toString();
+    var recordJson = LJson().beginObject().propertyString("data", T.toString()).propertyObject("map", record).endObject().toString();
     LLog.test(LRepository, "persist: $recordJson");
     try {
-      final response = await http.post(Uri.parse(webServer + persistCommand),
-          headers: <String, String>{
-            "Content-Type": "application/json",
-          },
-          body: recordJson);
+      final response = await http.post(Uri.parse(webServer + persistCommand), headers: contentTypeJson, body: recordJson);
 
       if (response.statusCode == 200) {
         LLog.test(this, response.statusCode.toString());
         state = LDataState.AVAILABLE;
       } else {
         // If the server did not return a 200 OK response
-        throw Exception(
-            "Failed to fetch '$webServer$persistCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception("Failed to fetch '$webServer$persistCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
@@ -164,26 +133,16 @@ class LRepository<T extends Object> {
   }
 
   Future remove(T record) async {
-    var recordJson = LJson()
-        .beginObject()
-        .propertyString("data", T.toString())
-        .propertyObject("map", record, true)
-        .endObject()
-        .toString();
+    var recordJson = LJson().beginObject().propertyString("data", T.toString()).propertyObject("map", record, true).endObject().toString();
     LLog.test(LRepository, "remove: $recordJson");
     try {
-      final response = await http.post(Uri.parse(webServer + removeCommand),
-          headers: <String, String>{
-            "Content-Type": "application/json",
-          },
-          body: recordJson);
+      final response = await http.post(Uri.parse(webServer + removeCommand), headers: contentTypeJson, body: recordJson);
       if (response.statusCode == 200) {
         LLog.test(this, response.statusCode.toString());
         state = LDataState.AVAILABLE;
       } else {
         // If the server did not return a 200 OK response
-        throw Exception(
-            "Failed to fetch '$webServer$removeCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception("Failed to fetch '$webServer$removeCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
@@ -195,16 +154,25 @@ class LRepository<T extends Object> {
 @Reflect
 enum LDataState { UNKNOWN, REQUESTING, OFFLINE, AVAILABLE }
 
-class LQuery {
+@Reflect
+class LQuery<T extends Object> {
   @Json
-  final int offset;
+  final String recordClass;
   @Json
-  final int limit;
+  T? parent;
   @Json
-  final List<LSortOrder>? sortOrders;
+  int? offset;
   @Json
-  final LTerm? filter;
-  LQuery(this.offset, this.limit, [this.sortOrders, this.filter]);
+  int? limit;
+  @Json
+  List<LSortOrder>? sortOrders;
+  @Json
+  String? filter;
+  LQuery(Type recordClass, [this.offset, this.limit, this.filter]) : this.recordClass = odwBasePackage + "." + recordClass.toString();
+
+  static LQuery of(Type recordClass) {
+    return LQuery(recordClass);
+  }
 
   @override
   String toString() {

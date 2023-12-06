@@ -288,7 +288,7 @@ abstract class LReflections {
     return value;
   }
 
-  static Object? newInstance<T>(Type toBeInstanciated, [Map<String, dynamic>? map]) {
+  static Object newInstance<T>(Type toBeInstanciated, [Map<String, dynamic>? map]) {
     var cm = mirrorClass(toBeInstanciated);
     for (var m in cm.declarations.values) {
       if (m is VariableMirror) {}
@@ -322,6 +322,7 @@ abstract class LReflections {
           cList.add(value);
         }
         var insta = cm.newInstance("", cList);
+        LLog.test(LReflections, "insta created: $insta");
         //2. tbi - set fields, which are not setted in constructor
         var im = LReflections.mirror(insta);
         map?.forEach((key, value) {
@@ -333,10 +334,11 @@ abstract class LReflections {
             }
           }
         });
+        LLog.test(LReflections, "insta created complete: $insta");
         return insta;
       }
     }
-    return null;
+    throw Exception("Can not create new instance of $toBeInstanciated");
   }
 
   static Object updateInstance(Object insta, Map<String, dynamic> map) {
