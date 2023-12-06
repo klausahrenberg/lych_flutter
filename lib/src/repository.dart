@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:lych/lych.dart';
 import 'package:http/http.dart' as http;
 
-final String odwBasePackage = "com.ka.kms.odw";
-
 @Reflect
 class LRepository<T extends Object> {
   LRepository([this.webServer = "http://localhost:8080/api/"]);
@@ -52,12 +50,8 @@ class LRepository<T extends Object> {
     LLog.test(this, "fetch Root...");
     state = LDataState.REQUESTING;
     try {
-      String request = LJson()
-          .beginObject()
-          .propertyString("recordClass", odwBasePackage + "." + T.toString())
-          .propertyString("rootName", rootName ?? null)
-          .endObject()
-          .toString();
+      String request =
+          LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
       LLog.test(LRepository, request);
       final response = await http.post(Uri.parse(webServer + fetchRootCommand), headers: contentTypeJson, body: request);
 
@@ -79,18 +73,19 @@ class LRepository<T extends Object> {
     }
   }
 
-  Future<List<T>> fetch(LQuery query) async {
+  Future<List<T>> fetch(Type recordClass, {int offset = 0, int limit = 50, String? filter, Object? parent}) async {
     LLog.test(this, "fetching...");
     state = LDataState.REQUESTING;
     try {
-      String request = LJson.of(query).toString();
-      /*.beginObject()
-          .propertyString("recordClass", odwBasePackage + "." + T.toString())
+      String request = LJson()
+          .beginObject()
+          .propertyString("recordClass", recordClass.toString())
           .propertyInteger("offset", offset)
           .propertyInteger("limit", limit)
           .propertyString("filter", filter ?? null)
+          .propertyObject("parent", parent, onlyId: true)
           .endObject()
-          .toString();*/
+          .toString();
       LLog.test(LRepository, request);
       final response = await http.post(Uri.parse(webServer + fetchCommand), headers: contentTypeJson, body: request);
 
@@ -133,7 +128,7 @@ class LRepository<T extends Object> {
   }
 
   Future remove(T record) async {
-    var recordJson = LJson().beginObject().propertyString("data", T.toString()).propertyObject("map", record, true).endObject().toString();
+    var recordJson = LJson().beginObject().propertyString("data", T.toString()).propertyObject("map", record, onlyId: true).endObject().toString();
     LLog.test(LRepository, "remove: $recordJson");
     try {
       final response = await http.post(Uri.parse(webServer + removeCommand), headers: contentTypeJson, body: recordJson);
@@ -153,46 +148,3 @@ class LRepository<T extends Object> {
 
 @Reflect
 enum LDataState { UNKNOWN, REQUESTING, OFFLINE, AVAILABLE }
-
-@Reflect
-class LQuery<T extends Object> {
-  @Json
-  final String recordClass;
-  @Json
-  T? parent;
-  @Json
-  int? offset;
-  @Json
-  int? limit;
-  @Json
-  List<LSortOrder>? sortOrders;
-  @Json
-  String? filter;
-  LQuery(Type recordClass, [this.offset, this.limit, this.filter]) : this.recordClass = odwBasePackage + "." + recordClass.toString();
-
-  static LQuery of(Type recordClass) {
-    return LQuery(recordClass);
-  }
-
-  @override
-  String toString() {
-    return LReflections.asString(this);
-  }
-}
-
-class LSortOrder {
-  @Json
-  final String fieldName;
-  @Json
-  final LSortDirection sortDirection;
-  LSortOrder(this.fieldName, this.sortDirection);
-
-  @override
-  String toString() {
-    return LReflections.asString(this);
-  }
-}
-
-enum LSortDirection { ASCENDING, DESCENDING }
-
-class LTerm {}

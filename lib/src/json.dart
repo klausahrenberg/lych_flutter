@@ -172,16 +172,20 @@ class LJson {
     return this;
   }
 
-  LJson propertyObject(String name, Object o, [bool onlyId = false]) {
+  LJson propertyObject(String name, Object? o, {bool onlyId = false}) {
     _ifSeparator();
     separatorAlreadyCalled = true;
     memberName(name);
-    writeObject(o, onlyId);
+    if (o != null) {
+      writeObject(o, onlyId: onlyId);
+    } else {
+      writeNull();
+    }
     separatorAlreadyCalled = false;
     return this;
   }
 
-  LJson writeObject(Object o, bool onlyId) {
+  LJson writeObject(Object o, {bool onlyId = false}) {
     if (!separatorAlreadyCalled) {
       _ifSeparator();
     }
@@ -273,7 +277,7 @@ class LJson {
       } else if (ci.runtimeType == bool) {
         writeBoolean(ci);
       } else {
-        writeObject(ci, false);
+        writeObject(ci, onlyId: false);
       }
     }
     stream.write(BEND);
@@ -332,6 +336,7 @@ class LJson {
     json.tabLevel = tabLevel;
     var fields = LReflections.getFieldsOfInstance(o, null, {Json, Id, Lazy});
     json.beginObject();
+    json.propertyString("class", o.runtimeType.toString());
     for (var field in fields) {
       var value = LReflections.value(o, field.simpleName);
       var fieldName = field.simpleName;

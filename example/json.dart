@@ -28,8 +28,6 @@ void main() {
   endObject().endObject().toString();*/
 
   print("json $jString");
-  LQuery? b = LJson.parsePayload(LQuery, jString) as LQuery?;
-  print("query created by mirrors: $b");
 }
 
 class Contact {
