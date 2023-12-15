@@ -72,8 +72,6 @@ abstract class LReflections {
   }
 
   static Set<VariableMirror> getFieldsOfInstance(Object o, Type? requiredType, Iterable<LAnnotation> annotations) {
-    var im = mirror(o);
-    LLog.test(LReflections, "type is ${im.type}");
     return _getFields(mirror(o).type, requiredType, annotations);
   }
 
@@ -240,50 +238,29 @@ abstract class LReflections {
 
   static dynamic _getValue(Type requiredType, dynamic value, ClassMirror cm, String fieldName) {
     var pType = requiredType.toString();
-    LLog.test(LReflections, "getValue... $value");
-    /*if (LReflections.isObservable(requiredType)) {
-      LLog.test(LReflections, "observab");
-      value = createObservableForValue(value, requiredType);
-      LLog.test(LReflections, "Observable for field $fieldName created: $value");
-    } else*/
     if (value != null) {
       if (pType.startsWith("List<")) {
-        LLog.test(LReflections, "list");
         pType = pType.substring(5, pType.length - 1);
         var rt = _getTypeFromName(pType);
         if (rt != null) {
           value = newList(rt, value, cm, fieldName);
-        } else {
-          LLog.test(LReflections, "No type for '$pType' found...");
         }
       } else if (pType.startsWith("Map<String, ")) {
-        LLog.test(LReflections, "map");
         pType = pType.substring(12, pType.length - 1);
         var rt = _getTypeFromName(pType);
         if (rt != null) {
           value = newMap(rt, value, cm, fieldName);
-        } else {
-          LLog.test(LReflections, "No type for '$pType' found...");
         }
       } else if (_isPrimitiveType(requiredType)) {
         //nothing
-        LLog.test(LReflections, "prim type");
       } else {
-        LLog.test(LReflections, "not primitive, no list no map.. ${requiredType.toString()} .. $pType");
         var cmRequiredType = mirrorClass(requiredType);
-        LLog.test(LReflections, "not primitive, no list no map.... ");
         if (isEnum(requiredType, cmRequiredType)) {
-          LLog.test(LReflections, "enum.. ");
           value = stringToEnum(value, getEnums(requiredType, cmRequiredType));
         } else if (value is Map<String, dynamic>) {
           value = newInstance(requiredType, value);
         }
-        /*else if (isObservable(requiredType)) {
-          value = LReflections.createObservableForValue(value);
-        }*/
       }
-    } else {
-      LLog.test(LReflections, "value for field '$fieldName' is null and can not be created ${_isPrimitiveType(requiredType)} / $requiredType ");
     }
     return value;
   }
@@ -302,12 +279,10 @@ abstract class LReflections {
         var cNames = <String>[];
         for (var p in m.parameters) {
           var cName = LReflections.getName(p);
-          LLog.test(LReflections, "cName $cName / ${p.reflectedType} / ${p.isOptional}");
           cNames.add(cName);
           var value = _getValue(p.reflectedType, (map != null ? map[cName] : null), cm, cName);
           if ((!p.isOptional) && (value == null)) {
             var field = fields.firstWhere((f) => f.simpleName == cName);
-            //LLog.test(LReflections, "field $field / ${LReflections.isId(field)} / ${(p.reflectedType == String)} / ${(field.reflectedType == String)}");
             if (LReflections.isId(field)) {
               if (p.reflectedType == String) {
                 value = DEFAULT_ID_STR_NOT_SAVED_YET;
@@ -322,7 +297,6 @@ abstract class LReflections {
           cList.add(value);
         }
         var insta = cm.newInstance("", cList);
-        LLog.test(LReflections, "insta created: $insta");
         //2. tbi - set fields, which are not setted in constructor
         var im = LReflections.mirror(insta);
         map?.forEach((key, value) {
@@ -334,7 +308,6 @@ abstract class LReflections {
             }
           }
         });
-        LLog.test(LReflections, "insta created complete: $insta");
         return insta;
       }
     }
@@ -342,23 +315,15 @@ abstract class LReflections {
   }
 
   static Object updateInstance(Object insta, Map<String, dynamic> map) {
-    LLog.test(LReflections, "insta mirror..");
     var im = LReflections.mirror(insta);
-    LLog.test(LReflections, "insta mirror ok");
     var cm = LReflections.mirrorClass(insta.runtimeType);
-    LLog.test(LReflections, "insta mirrorClass ok");
     map.forEach((key, value) {
-      LLog.test(LReflections, "key $key; value $value");
       var dm = cm.declarations[key];
       if (dm is VariableMirror) {
-        LLog.test(LReflections, "key $key; value $value... / $dm / ${dm.reflectedType}");
         var v = _getValue(dm.reflectedType, value, cm, key);
-        LLog.test(LReflections, "key $key; value $value after getValie");
         im.invokeSetter(key, v);
-        LLog.test(LReflections, "key $key; value $value after invokeSette");
       }
     });
-    LLog.test(LReflections, "..ok");
     return insta;
   }
 

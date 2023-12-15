@@ -108,8 +108,14 @@ class LRepository<T extends Object> {
     }
   }
 
-  Future persist(T record) async {
-    var recordJson = LJson().beginObject().propertyString("data", T.toString()).propertyObject("map", record).endObject().toString();
+  Future persist(T record, {Object? parent}) async {
+    var recordJson = LJson()
+        .beginObject()
+        .propertyString("data", T.toString())
+        .propertyObject("map", record)
+        .propertyObject("parent", parent, onlyId: true)
+        .endObject()
+        .toString();
     LLog.test(LRepository, "persist: $recordJson");
     try {
       final response = await http.post(Uri.parse(webServer + persistCommand), headers: contentTypeJson, body: recordJson);
@@ -127,8 +133,14 @@ class LRepository<T extends Object> {
     }
   }
 
-  Future remove(T record) async {
-    var recordJson = LJson().beginObject().propertyString("data", T.toString()).propertyObject("map", record, onlyId: true).endObject().toString();
+  Future remove(T record, {Object? parent}) async {
+    var recordJson = LJson()
+        .beginObject()
+        .propertyString("data", T.toString())
+        .propertyObject("map", record, onlyId: true)
+        .propertyObject("parent", parent, onlyId: true)
+        .endObject()
+        .toString();
     LLog.test(LRepository, "remove: $recordJson");
     try {
       final response = await http.post(Uri.parse(webServer + removeCommand), headers: contentTypeJson, body: recordJson);
