@@ -8,8 +8,6 @@ class LRepository<T extends Object> {
   LRepository([this.webServer = "http://localhost:8080/api/"]);
   @Json
   LDataState state = LDataState.UNKNOWN;
-  @Json
-  //List<T>? datas;
 
   static Map<String, String> contentTypeJson = <String, String>{"Content-Type": "application/json"};
 
@@ -111,7 +109,7 @@ class LRepository<T extends Object> {
   Future persist(T record, {Object? parent}) async {
     var recordJson = LJson()
         .beginObject()
-        .propertyString("data", T.toString())
+        .propertyString("recordClass", T.toString())
         .propertyObject("map", record)
         .propertyObject("parent", parent, onlyId: true)
         .endObject()
@@ -136,7 +134,7 @@ class LRepository<T extends Object> {
   Future remove(T record, {Object? parent}) async {
     var recordJson = LJson()
         .beginObject()
-        .propertyString("data", T.toString())
+        .propertyString("recordClass", T.toString())
         .propertyObject("map", record, onlyId: true)
         .propertyObject("parent", parent, onlyId: true)
         .endObject()
