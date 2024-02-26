@@ -50,8 +50,9 @@ class LRepository<T extends Object> {
     try {
       String request =
           LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
-      LLog.test(LRepository, request);
+      LLog.test(LRepository, "request is ${webServer + fetchRootCommand}");
       final response = await http.post(Uri.parse(webServer + fetchRootCommand), headers: contentTypeJson, body: request);
+      LLog.test(LRepository, "waiting  finished.");
 
       LLog.test(this, response.statusCode.toString());
       if (response.statusCode == 200) {
@@ -67,6 +68,7 @@ class LRepository<T extends Object> {
       }
     } catch (e) {
       state = LDataState.OFFLINE;
+      LLog.test(this, "Error: ${e.toString()}");
       throw Exception("Failed to fetch root for other reasons: '${e.toString()}'");
     }
   }
