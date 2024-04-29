@@ -334,7 +334,7 @@ class LJson {
 
   static void _objectToJson(LJson json, Object o, bool onlyId, int tabLevel) {
     json.tabLevel = tabLevel;
-    var fields = LReflections.getFieldsOfInstance(o, null, {Json, Id, Lazy});
+    var fields = LReflections.getFieldsOfInstance(o, null, {Json, Id, Late});
     json.beginObject();
     json.propertyString("class", o.runtimeType.toString());
     for (var field in fields) {

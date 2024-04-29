@@ -8,7 +8,7 @@ abstract class LReflections {
 
   static Map<String, dynamic> toMap(Object o) {
     var map = <String, dynamic>{};
-    var fields = getFieldsOfInstance(o, Object, {Json, Id, Lazy});
+    var fields = getFieldsOfInstance(o, Object, {Json, Id, Late});
     for (var field in fields) {
       map[field.simpleName.toString()] = mirror(o).invokeGetter(field.simpleName);
     }
@@ -75,11 +75,11 @@ abstract class LReflections {
     return _getFields(mirror(o).type, requiredType, annotations);
   }
 
-  static Set<VariableMirror> getFields(Type o, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
+  static Set<VariableMirror> getFields(Type o, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Late}]) {
     return _getFields(mirrorClass(o), requiredType, annotations);
   }
 
-  static Set<VariableMirror> _getFields(ClassMirror cm, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Lazy}]) {
+  static Set<VariableMirror> _getFields(ClassMirror cm, [Type? requiredType, Iterable<LAnnotation> annotations = const {Json, Id, Late}]) {
     var result = <VariableMirror>{};
     TypeMirror? requiredTypeMirror = (requiredType != null ? mirrorType(requiredType) : null);
     for (final d in cm.declarations.values) {
@@ -104,6 +104,10 @@ abstract class LReflections {
 
   static bool isId(VariableMirror field) {
     return existsAnnotation(field, {Id});
+  }
+
+  static bool isLate(VariableMirror field) {
+    return existsAnnotation(field, {Late});
   }
 
   /*static bool isObservable(Type type) {
@@ -397,11 +401,17 @@ class LJsonAnnotation extends LAnnotation {
 
 const LJsonAnnotation Json = LJsonAnnotation();
 
-class LLazyAnnotation extends LAnnotation {
+/*class LLazyAnnotation extends LAnnotation {
   const LLazyAnnotation();
 }
 
-const LLazyAnnotation Lazy = LLazyAnnotation();
+const LLazyAnnotation Lazy = LLazyAnnotation();*/
+
+class LLateAnnotation extends LAnnotation {
+  const LLateAnnotation();
+}
+
+const LLateAnnotation Late = LLateAnnotation();
 
 class LIdAnnotation extends LAnnotation {
   const LIdAnnotation();

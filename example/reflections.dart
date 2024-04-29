@@ -12,7 +12,7 @@ void main() {
   }
 
   var c = Thing("hoho");
-  var fields2 = LReflections.getFieldsOfInstance(c, Object, {Json, Id, Lazy});
+  var fields2 = LReflections.getFieldsOfInstance(c, Object, {Json, Id, Late});
   print('reflections.getFields: $fields2');
 
   print('contact before setting: $c');
