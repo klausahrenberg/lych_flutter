@@ -48,8 +48,7 @@ class LRepository<T extends Object> {
     LLog.test(this, "fetch Root...");
     state = LDataState.REQUESTING;
     try {
-      String request =
-          LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
+      String request = LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
       LLog.test(LRepository, "request is ${webServer + fetchRootCommand}");
       final response = await http.post(Uri.parse(webServer + fetchRootCommand), headers: contentTypeJson, body: request);
       LLog.test(LRepository, "waiting  finished.");
