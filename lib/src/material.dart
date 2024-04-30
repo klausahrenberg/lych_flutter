@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lych/lych.dart';
+import 'package:reflectable/reflectable.dart';
 
 abstract class LRecordWidget<T extends Object> extends StatefulWidget {
   final LRepository<T> repo;
@@ -16,8 +17,11 @@ abstract class LRecordState<T extends Object> extends State<LRecordWidget<T>> {
 
 abstract class LListWidget<T extends Object> extends StatefulWidget {
   final LRepository<T> repo;
+  Set<VariableMirror> fields;
 
-  LListWidget([String url = "http://localhost:8080/api/"]) : repo = LRepository(url);
+  LListWidget([String url = "http://localhost:8080/api/"])
+      : repo = LRepository(url),
+        fields = LReflections.getFields(T);
 }
 
 abstract class LListState<T extends Object> extends State<LListWidget<T>> {
