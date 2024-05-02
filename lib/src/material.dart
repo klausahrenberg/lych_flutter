@@ -4,14 +4,17 @@ import 'package:reflectable/reflectable.dart';
 
 abstract class LRecordWidget<T extends Object> extends StatefulWidget {
   final LRepository<T> repo;
+  Set<VariableMirror> fields;
   T record;
-  LRecordWidget(this.record, [String url = "http://localhost:8080/api/"]) : repo = new LRepository(url);
+  LRecordWidget(this.record, this.fields, [String url = "http://localhost:8080/api/"]) : repo = new LRepository(url);
 }
 
 abstract class LRecordState<T extends Object> extends State<LRecordWidget<T>> {
   bool changed = false;
-  LRecordState() {
-    LLog.test(this, "try to load late fields...");
+  LRecordState();
+
+  void initState() {
+    super.initState();
   }
 }
 

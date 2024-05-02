@@ -14,6 +14,7 @@ class LRepository<T extends Object> {
   String webServer;
   String fetchCommand = "fetch";
   String fetchRootCommand = "root";
+  String fetchValueCommand = "value";
   String stateCommand = "state";
   String persistCommand = "persist";
   String removeCommand = "remove";
@@ -48,7 +49,8 @@ class LRepository<T extends Object> {
     LLog.test(this, "fetch Root...");
     state = LDataState.REQUESTING;
     try {
-      String request = LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
+      String request =
+          LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
       LLog.test(LRepository, "request is ${webServer + fetchRootCommand}");
       final response = await http.post(Uri.parse(webServer + fetchRootCommand), headers: contentTypeJson, body: request);
       LLog.test(LRepository, "waiting  finished.");
@@ -104,6 +106,25 @@ class LRepository<T extends Object> {
     } catch (e) {
       state = LDataState.OFFLINE;
       throw Exception("Failed to fetch for other reasons: '${e.toString()}'");
+    }
+  }
+
+  Future fetchValue(T record, String fieldName) async {
+    var recordJson = LJson().beginObject().propertyObject("record", record, onlyId: true).propertyString("fieldName", fieldName).endObject().toString();
+    LLog.test(LRepository, "fetchValue: $recordJson");
+    try {
+      final response = await http.post(Uri.parse(webServer + fetchValueCommand), headers: contentTypeJson, body: recordJson);
+
+      if (response.statusCode == 200) {
+        LLog.test(this, response.statusCode.toString());
+        state = LDataState.AVAILABLE;
+      } else {
+        // If the server did not return a 200 OK response
+        throw Exception("Failed to fetch '$webServer$fetchValueCommand'. Status ${response.statusCode}. Response ${response.body}");
+      }
+    } catch (e) {
+      state = LDataState.OFFLINE;
+      throw Exception("Failed to fetch value for other reasons: '${e.toString()}'");
     }
   }
 
