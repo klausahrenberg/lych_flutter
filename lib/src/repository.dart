@@ -49,8 +49,7 @@ class LRepository<T extends Object> {
     LLog.test(this, "fetch Root...");
     state = LDataState.REQUESTING;
     try {
-      String request =
-          LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
+      String request = LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
       LLog.test(LRepository, "request is ${webServer + fetchRootCommand}");
       final response = await http.post(Uri.parse(webServer + fetchRootCommand), headers: contentTypeJson, body: request);
       LLog.test(LRepository, "waiting  finished.");
@@ -117,6 +116,13 @@ class LRepository<T extends Object> {
 
       if (response.statusCode == 200) {
         LLog.test(this, response.statusCode.toString());
+        var b = utf8.decode(response.bodyBytes);
+        LLog.test(this, b);
+        var r = json.decode(b);
+        LLog.test(this, r);
+        var map = {fieldName: r};
+        LLog.test(this, "map $map");
+        LReflections.updateInstance(record, map);
         state = LDataState.AVAILABLE;
       } else {
         // If the server did not return a 200 OK response
