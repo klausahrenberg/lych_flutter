@@ -9,7 +9,9 @@ class LRepository<T extends Object> {
   @Json
   LDataState state = LDataState.UNKNOWN;
 
-  static Map<String, String> contentTypeJson = <String, String>{"Content-Type": "application/json"};
+  static Map<String, String> contentTypeJson = <String, String>{
+    "Content-Type": "application/json"
+  };
 
   String webServer;
   String fetchCommand = "fetch";
@@ -22,13 +24,15 @@ class LRepository<T extends Object> {
   Future<LDataState> checkState() async {
     state = LDataState.REQUESTING;
     try {
-      final response = await http.post(Uri.parse(webServer + stateCommand), headers: contentTypeJson);
+      final response = await http.post(Uri.parse(webServer + stateCommand),
+          headers: contentTypeJson);
       if (response.statusCode == 200) {
         var b = utf8.decode(response.bodyBytes);
         var r = json.decode(b);
         LLog.test(this, "state is ${r['state'].toLowerCase()}");
         var sas = r["state"];
-        state = LReflections.stringToEnum(sas, LReflections.getEnums(LDataState));
+        state =
+            LReflections.stringToEnum(sas, LReflections.getEnums(LDataState));
         /*state = LDataState.values.firstWhere((e) {
           LLog.test(this, "test for $e >? ${LDataState.type.toString()}");
           return e.toString().toLowerCase() == LDataState.toString() + sas;
@@ -49,9 +53,15 @@ class LRepository<T extends Object> {
     LLog.test(this, "fetch Root...");
     state = LDataState.REQUESTING;
     try {
-      String request = LJson().beginObject().propertyString("recordClass", recordClass.toString()).propertyString("rootName", rootName ?? null).endObject().toString();
+      String request = LJson()
+          .beginObject()
+          .propertyString("recordClass", recordClass.toString())
+          .propertyString("rootName", rootName ?? null)
+          .endObject()
+          .toString();
       LLog.test(LRepository, "request is ${webServer + fetchRootCommand}");
-      final response = await http.post(Uri.parse(webServer + fetchRootCommand), headers: contentTypeJson, body: request);
+      final response = await http.post(Uri.parse(webServer + fetchRootCommand),
+          headers: contentTypeJson, body: request);
       LLog.test(LRepository, "waiting  finished.");
 
       LLog.test(this, response.statusCode.toString());
@@ -64,16 +74,19 @@ class LRepository<T extends Object> {
       } else {
         // If the server did not return a 200 OK response
         state = LDataState.OFFLINE;
-        throw Exception("Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception(
+            "Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
       LLog.test(this, "Error: ${e.toString()}");
-      throw Exception("Failed to fetch root for other reasons: '${e.toString()}'");
+      throw Exception(
+          "Failed to fetch root for other reasons: '${e.toString()}'");
     }
   }
 
-  Future<List<T>> fetch(Type recordClass, {int offset = 0, int limit = 50, String? filter, Object? parent}) async {
+  Future<List<T>> fetch(Type recordClass,
+      {int offset = 0, int limit = 50, String? filter, Object? parent}) async {
     LLog.test(this, "fetching...");
     state = LDataState.REQUESTING;
     try {
@@ -87,7 +100,8 @@ class LRepository<T extends Object> {
           .endObject()
           .toString();
       LLog.test(LRepository, request);
-      final response = await http.post(Uri.parse(webServer + fetchCommand), headers: contentTypeJson, body: request);
+      final response = await http.post(Uri.parse(webServer + fetchCommand),
+          headers: contentTypeJson, body: request);
 
       LLog.test(this, response.statusCode.toString());
       if (response.statusCode == 200) {
@@ -100,7 +114,8 @@ class LRepository<T extends Object> {
       } else {
         // If the server did not return a 200 OK response
         state = LDataState.OFFLINE;
-        throw Exception("Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception(
+            "Failed to fetch '$webServer$fetchCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
@@ -109,10 +124,15 @@ class LRepository<T extends Object> {
   }
 
   Future fetchValue(T record, String fieldName) async {
-    var recordJson = LJson().beginObject().propertyObject("record", record, onlyId: true).propertyString("fieldName", fieldName).endObject().toString();
+    var recordJson = LJson()
+        .beginObject()
+        .propertyObject("record", record, onlyId: true, fieldName: fieldName)
+        .endObject()
+        .toString();
     LLog.test(LRepository, "fetchValue: $recordJson");
     try {
-      final response = await http.post(Uri.parse(webServer + fetchValueCommand), headers: contentTypeJson, body: recordJson);
+      final response = await http.post(Uri.parse(webServer + fetchValueCommand),
+          headers: contentTypeJson, body: recordJson);
 
       if (response.statusCode == 200) {
         LLog.test(this, response.statusCode.toString());
@@ -126,26 +146,61 @@ class LRepository<T extends Object> {
         state = LDataState.AVAILABLE;
       } else {
         // If the server did not return a 200 OK response
-        throw Exception("Failed to fetch '$webServer$fetchValueCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception(
+            "Failed to fetch '$webServer$fetchValueCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
-      throw Exception("Failed to fetch value for other reasons: '${e.toString()}'");
+      throw Exception(
+          "Failed to fetch value for other reasons: '${e.toString()}'");
     }
   }
 
-  Future persist(T record, {Object? parent}) async {
-    var recordJson = LJson().beginObject().propertyObject("record", record).propertyObject("parent", parent, onlyId: true).endObject().toString();
+  /*Future persistValue(T record, {Object? parent}) async {
+    var recordJson = LJson()
+        .beginObject()
+        .propertyObject("record", record, onlyId: true)
+        .propertyString("fieldName", fieldName)
+        .endObject()
+        .toString();
     LLog.test(LRepository, "persist: $recordJson");
     try {
-      final response = await http.post(Uri.parse(webServer + persistCommand), headers: contentTypeJson, body: recordJson);
+      final response = await http.post(Uri.parse(webServer + persistCommand),
+          headers: contentTypeJson, body: recordJson);
 
       if (response.statusCode == 200) {
         LLog.test(this, response.statusCode.toString());
         state = LDataState.AVAILABLE;
       } else {
         // If the server did not return a 200 OK response
-        throw Exception("Failed to fetch '$webServer$persistCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception(
+            "Failed to fetch '$webServer$persistCommand'. Status ${response.statusCode}. Response ${response.body}");
+      }
+    } catch (e) {
+      state = LDataState.OFFLINE;
+      throw Exception("Failed to persist for other reasons: '${e.toString()}'");
+    }
+  }*/
+
+  Future persist(T record, {Object? parent}) async {
+    var recordJson = LJson()
+        .beginObject()
+        .propertyObject("record", record)
+        .propertyObject("parent", parent, onlyId: true)
+        .endObject()
+        .toString();
+    LLog.test(LRepository, "persist: $recordJson");
+    try {
+      final response = await http.post(Uri.parse(webServer + persistCommand),
+          headers: contentTypeJson, body: recordJson);
+
+      if (response.statusCode == 200) {
+        LLog.test(this, response.statusCode.toString());
+        state = LDataState.AVAILABLE;
+      } else {
+        // If the server did not return a 200 OK response
+        throw Exception(
+            "Failed to fetch '$webServer$persistCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
@@ -154,16 +209,23 @@ class LRepository<T extends Object> {
   }
 
   Future remove(T record, {Object? parent}) async {
-    var recordJson = LJson().beginObject().propertyObject("record", record, onlyId: true).propertyObject("parent", parent, onlyId: true).endObject().toString();
+    var recordJson = LJson()
+        .beginObject()
+        .propertyObject("record", record, onlyId: true)
+        .propertyObject("parent", parent, onlyId: true)
+        .endObject()
+        .toString();
     LLog.test(LRepository, "remove: $recordJson");
     try {
-      final response = await http.post(Uri.parse(webServer + removeCommand), headers: contentTypeJson, body: recordJson);
+      final response = await http.post(Uri.parse(webServer + removeCommand),
+          headers: contentTypeJson, body: recordJson);
       if (response.statusCode == 200) {
         LLog.test(this, response.statusCode.toString());
         state = LDataState.AVAILABLE;
       } else {
         // If the server did not return a 200 OK response
-        throw Exception("Failed to fetch '$webServer$removeCommand'. Status ${response.statusCode}. Response ${response.body}");
+        throw Exception(
+            "Failed to fetch '$webServer$removeCommand'. Status ${response.statusCode}. Response ${response.body}");
       }
     } catch (e) {
       state = LDataState.OFFLINE;
