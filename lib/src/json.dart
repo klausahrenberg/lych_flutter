@@ -172,8 +172,7 @@ class LJson {
     return this;
   }
 
-  LJson propertyObject(String name, Object? o,
-      {bool onlyId = false, String? fieldName}) {
+  LJson propertyObject(String name, Object? o, {bool onlyId = false, String? fieldName}) {
     _ifSeparator();
     separatorAlreadyCalled = true;
     memberName(name);
@@ -311,8 +310,7 @@ class LJson {
     return LJson();
   }
 
-  static LJson of(Object o,
-      [bool onlyId = false, int tabLevel = 0, bool prettyFormatting = false]) {
+  static LJson of(Object o, [bool onlyId = false, int tabLevel = 0, bool prettyFormatting = false]) {
     var json = LJson();
     json.prettyFormatting = prettyFormatting;
     if (o is List) {
@@ -334,8 +332,7 @@ class LJson {
     }
   }
 
-  static void _objectToJson(
-      LJson json, Object o, bool onlyId, String? fName, int tabLevel) {
+  static void _objectToJson(LJson json, Object o, bool onlyId, String? fName, int tabLevel) {
     json.tabLevel = tabLevel;
     var fields = LReflections.getFieldsOfInstance(o, null, {Json, Id, Late});
     json.beginObject();
@@ -345,7 +342,7 @@ class LJson {
       var fieldName = field.simpleName;
       var isId = LReflections.isId(field);
       var isLate = LReflections.isLate(field);
-      if (((!isLate) || (fieldName == fName)) && ((!onlyId) || (isId))) {
+      if (((!isLate) && ((!onlyId) || (isId))) || (fieldName == fName)) {
         if (value == null) {
           json.propertyNull(fieldName);
         } else if (value is String) {
@@ -369,8 +366,7 @@ class LJson {
         } else if (value is Map<String, dynamic>) {
           json.propertyMap(fieldName, value);
         } else if ((field.type as ClassMirror).isEnum) {
-          LLog.test(LJson,
-              ".... enumToString $fieldName / $value ... ${LReflections.enumToString(value)}");
+          LLog.test(LJson, ".... enumToString $fieldName / $value ... ${LReflections.enumToString(value)}");
           json.propertyString(fieldName, LReflections.enumToString(value));
         } else {
           json.propertyObject(fieldName, value);

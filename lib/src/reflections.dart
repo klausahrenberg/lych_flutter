@@ -331,6 +331,26 @@ abstract class LReflections {
     return insta;
   }
 
+  static bool isIdComplete(Object rcd) {
+    var fields = getFieldsOfInstance(rcd, null, {Id});
+    var result = true;
+    var im = mirror(rcd);
+    for (var field in fields) {
+      LLog.test(rcd, "check id ${field.simpleName}");
+      var value = im.invokeGetter(field.simpleName);
+      if (field.reflectedType == String) {
+        result = result && (value != DEFAULT_ID_STR_NOT_SAVED_YET);
+      } else if (field.reflectedType == int) {
+        result = result && (value != DEFAULT_ID_INT_NOT_SAVED_YET);
+      } else {
+        throw Exception("id has unsupported type: ${field.reflectedType}");
+      }
+      LLog.test(rcd, "check id ${field.simpleName} / result $result / value $value");
+    }
+
+    return result;
+  }
+
   static List newList(Type itemType, List<dynamic> list, [ClassMirror? cm, String? memberName]) {
     List instances;
     if (itemType == String) {
