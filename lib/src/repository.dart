@@ -16,7 +16,7 @@ class LRepository<T extends Object> {
   String webServer;
   String fetchCommand = "fetch";
   String fetchRootCommand = "root";
-  String fetchValueCommand = "value";
+  String fetchValueCommand = "fetchValue";
   String stateCommand = "state";
   String persistCommand = "persist";
   String removeCommand = "remove";
@@ -126,23 +126,18 @@ class LRepository<T extends Object> {
   Future fetchValue(T record, String fieldName) async {
     var recordJson = LJson()
         .beginObject()
-        .propertyObject("record", record, onlyId: true, fieldName: fieldName)
+        .propertyObject("record", record, onlyId: true)
+        .propertyString("field", fieldName)
         .endObject()
         .toString();
     LLog.test(LRepository, "fetchValue: $recordJson");
     try {
       final response = await http.post(Uri.parse(webServer + fetchValueCommand),
           headers: contentTypeJson, body: recordJson);
-
       if (response.statusCode == 200) {
-        LLog.test(this, response.statusCode.toString());
         var b = utf8.decode(response.bodyBytes);
-        LLog.test(this, b);
-        var r = json.decode(b);
-        LLog.test(this, r);
-        var map = {fieldName: r};
-        LLog.test(this, "map $map");
-        LReflections.updateInstance(record, map);
+        var map = json.decode(b);
+        LReflections.setValue(record, map["field"], map["value"]);
         state = LDataState.AVAILABLE;
       } else {
         // If the server did not return a 200 OK response
@@ -151,8 +146,7 @@ class LRepository<T extends Object> {
       }
     } catch (e) {
       state = LDataState.OFFLINE;
-      throw Exception(
-          "Failed to fetch value for other reasons: '${e.toString()}'");
+      throw e;
     }
   }
 
