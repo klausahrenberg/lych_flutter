@@ -164,7 +164,15 @@ class LJson {
         _ifSeparator();
       }
       stream.write(QUOTE);
-      stream.write(text.replaceAll("\"", "\\\""));
+      text = text
+          .replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "")
+          .replaceAll("\\", "\\\\")
+          .replaceAll("\"", "\\\"")
+          .replaceAll("\t", "\\t")
+          .replaceAll("\n", "\\n")
+          .replaceAll("\r", "\\r");
+      stream.write(text);
+      //stream.write(text.replaceAll("\"", "\\\""));
       stream.write(QUOTE);
     } else {
       writeNull();
