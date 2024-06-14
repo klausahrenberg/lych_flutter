@@ -162,8 +162,13 @@ class LRepository<T extends Object> {
       final response = await http.post(Uri.parse(webServer + persistCommand), headers: contentTypeJson, body: recordJson);
 
       if (response.statusCode == 200) {
-        LLog.test(this, response.statusCode.toString());
+        var b = utf8.decode(response.bodyBytes);
+        var map = json.decode(b);
+        var savedRcd = LReflections.newInstance(T, map) as T;
+        LReflections.copyId(savedRcd, record);
+        LLog.test(this, "record after response is $record");
         state = LDataState.AVAILABLE;
+        return record;
       } else {
         // If the server did not return a 200 OK response
         throw Exception("Failed to fetch '$webServer$persistCommand'. Status ${response.statusCode}. Response ${response.body}");
