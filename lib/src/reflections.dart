@@ -49,7 +49,7 @@ abstract class LReflections {
     return value(o, name, im) as LObservable;
   }*/
 
-  static void setValue(Object o, String name, Object value, [InstanceMirror? im]) {
+  static void setValue(Object o, String name, Object? value, [InstanceMirror? im]) {
     im ??= mirror(o);
     try {
       im.invokeSetter(name, value);
@@ -329,6 +329,13 @@ abstract class LReflections {
       }
     });
     return insta;
+  }
+
+  static void copyId(Object source, Object dest) {
+    var fields = getFieldsOfInstance(source, null, {Id});
+    for (var field in fields) {
+      LReflections.setValue(dest, field.simpleName, LReflections.value(source, field.simpleName));
+    }  
   }
 
   static bool isIdComplete(Object rcd) {
